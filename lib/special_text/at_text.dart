@@ -4,10 +4,17 @@ import 'package:flutter/material.dart';
 
 class AtText extends SpecialText {
   AtText(TextStyle? textStyle, SpecialTextGestureTapCallback? onTap,
-      {this.showAtBackground = false, this.start})
-      : super(flag, ' ', textStyle, onTap: onTap);
+      {required this.text,
+      this.showAtBackground = false,
+      this.start,
+      this.id,
+      this.end})
+      : super(flag, '\t', textStyle, onTap: onTap);
   static const String flag = '@';
   final int? start;
+  final int? end;
+  final int? id;
+  final String text;
 
   /// whether show background for @somebody
   final bool showAtBackground;

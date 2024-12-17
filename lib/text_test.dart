@@ -1,10 +1,8 @@
 import 'package:extended_text_field/extended_text_field.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:test_video/special_text/dollar_text.dart';
-import 'package:test_video/special_text/emoji_text.dart';
+import 'package:test_video/special_text/at_text.dart';
+import 'package:test_video/test_special_text_span_builder.dart';
 import 'package:test_video/text_edit_extension.dart';
-
 import 'my_special_text_span_builder.dart';
 
 class TextTest extends StatefulWidget {
@@ -20,12 +18,17 @@ class _TextTestState extends State<TextTest>
 
   final MySpecialTextSpanBuilder _mySpecialTextSpanBuilder =
       MySpecialTextSpanBuilder();
+
   final GlobalKey<ExtendedTextFieldState> _key =
       GlobalKey<ExtendedTextFieldState>();
 
   @override
   void initState() {
     _controller = TextEditingController();
+
+    _controller.addListener(() {
+      _mySpecialTextSpanBuilder.selection = _controller.selection;
+    });
 
     // TODO: implement initState
     super.initState();
@@ -44,22 +47,43 @@ class _TextTestState extends State<TextTest>
         title: const Text('text'),
       ),
       body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         width: double.infinity,
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-                child: ExtendedTextField(
-              key: _key,
-              controller: _controller,
-              specialTextSpanBuilder:
-                  MySpecialTextSpanBuilder(showAtBackground: true),
-            )),
-            GestureDetector(
-              child: Text('@--'),
-              onTap: () {
-                _controller.insertText("@liudongju");
-              },
+            Row(
+              children: [
+                Expanded(
+                    child: ExtendedTextField(
+                  maxLines: 5,
+                  key: _key,
+                  controller: _controller,
+                  specialTextSpanBuilder: _mySpecialTextSpanBuilder,
+                  // specialTextSpanBuilder: TestSpecialTextSpanBuilder(),
+                )),
+                GestureDetector(
+                  child: const Text('@--'),
+                  onTap: () {
+                    int start = _controller.selection.isValid
+                        ? _controller.selection.start
+                        : 0;
+
+                    AtText atText = AtText(
+                        const TextStyle(), null,
+                        text: 'liudongju\t',
+                        start: start,
+                        end: start);
+                    atText.appendContent('liudongju\t');
+                    try {
+                      _mySpecialTextSpanBuilder.insertSpecialText(atText);
+                      _controller.insertText("@liudongju\t");
+                    }catch (e) {
+                      e.toString();
+                    }
+
+                  },
+                )
+              ],
             )
           ],
         ),
