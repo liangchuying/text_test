@@ -11,8 +11,8 @@ class AtText extends SpecialText {
       this.end})
       : super(flag, '\t', textStyle, onTap: onTap);
   static const String flag = '@';
-  final int? start;
-  final int? end;
+  int? start;
+  int? end;
   final int? id;
   final String text;
 
@@ -56,14 +56,7 @@ class AtText extends SpecialText {
   }
 }
 
-List<String> atList = <String>[
-  '@Nevermore ',
-  '@Dota2 ',
-  '@Biglao ',
-  '@艾莉亚·史塔克 ',
-  '@丹妮莉丝 ',
-  '@HandPulledNoodles ',
-  '@Zmtzawqlp ',
-  '@FaDeKongJian ',
-  '@CaiJingLongDaLao ',
-];
+class AtImage extends ExtendedWidgetSpan {
+  AtImage({required super.child});
+
+}

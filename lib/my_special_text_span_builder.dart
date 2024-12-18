@@ -32,7 +32,6 @@ class MySpecialTextSpanBuilder extends SpecialTextSpanBuilder {
   @override
   TextSpan build(String data,
       {TextStyle? textStyle, SpecialTextGestureTapCallback? onTap}) {
-    // return TextSpan(text: data, style: textStyle);
     final List<InlineSpan> inlineList = <InlineSpan>[];
     String textStack = '';
 
@@ -43,6 +42,15 @@ class MySpecialTextSpanBuilder extends SpecialTextSpanBuilder {
     }
 
     if (data.isNotEmpty && _currentLineList.isNotEmpty) {
+      // 确定特殊文本是否有变动
+      if (data.length != _lastText.length) {
+        int differenceUnit = data.length - _lastText.length;
+        if (selection!.start != _lastSelection!.start) {
+          updateSpecialTextLocations(
+              _lastSelection!, selection!, differenceUnit);
+        }
+      }
+
       for (int i = 0; i < data.length; i++) {
         final String char = data[i];
         textStack += char;
@@ -85,8 +93,6 @@ class MySpecialTextSpanBuilder extends SpecialTextSpanBuilder {
 
   /// 插入指定组件
   void insertSpecialText(AtText span) {
-    int? start = _lastSelection?.baseOffset;
-
     // 第一次赋值的处理
     if (_lastSelection == null) {
       _currentLineList.add(span);
@@ -117,41 +123,14 @@ class MySpecialTextSpanBuilder extends SpecialTextSpanBuilder {
     return inlineList;
   }
 
-  // 新增文本
-  List<InlineSpan> addText(
-      String text, TextSelection? oldSelection, TextSelection newSelection) {
-    final List<InlineSpan> inlineList = <InlineSpan>[];
-    int newStart = newSelection.start;
-    int oldStart = oldSelection?.start ?? 0;
-
-    String insertText = text.substring(newStart, oldStart);
-
-    String textStack = '';
-
-    for (var i = 0; i < text.length; i++) {}
-
-    if (_currentLineList.isNotEmpty) {
-      // 判断是新增特殊文本的话 跳出，特殊文本已经特殊处理
-      // for (var i = 0; i < _currentLineList.length; i++) {
-      //   var customSpan = _currentLineList[i];
-      //   if (customSpan.start == newStart && customSpan.end == oldStart) {
-      //     _currentLineList.removeAt(i);
-      //     // 做删除的回调, 自定义处理
-      //     return;
-      //   }
-      // }
-    } else {
-      // 普通文本输出
-      inlineList.add(TextSpan(text: text));
-    }
-
-    return inlineList;
+  // 获取当前 AtText 数据
+  List getCurrentAtSpecial() {
+      return _currentLineList.whereType<AtText>().toList();
   }
 
   /// 根据删除的位置去删除特殊文本
   void deleteSpecialText(
       TextSelection? oldSelection, TextSelection? newSelection) {
-    final List<InlineSpan> inlineList = <InlineSpan>[];
     for (var i = 0; i < _currentLineList.length; i++) {
       var customSpan = _currentLineList[i];
       if (customSpan.start == newSelection?.start &&
@@ -164,7 +143,37 @@ class MySpecialTextSpanBuilder extends SpecialTextSpanBuilder {
   }
 
   // 更新特殊文本的位置
-  void updateSpecialText() {}
+  void updateSpecialTextLocations(
+      TextSelection oldSelection, TextSelection newSelection, int index) {
+    if (_currentLineList.isNotEmpty) {
+      // 整数 + ，负数 -
+      int newUnit = newSelection.start - oldSelection.start;
+
+      for (int i = 0; i < _currentLineList.length; i++) {
+        var currentSpan = _currentLineList[i];
+        // 新增文本操作
+        if (newSelection.start > oldSelection.start) {
+          // 谁在newSelection 前面输入的位置不改变反之
+          if (currentSpan.start > oldSelection.start) {
+            currentSpan.start += newUnit;
+            currentSpan.end += newUnit;
+          }
+        } else {
+          // 删除文本操作
+          if (currentSpan.end > oldSelection.start &&
+              currentSpan.start >= oldSelection.start) {
+            currentSpan.start += newUnit;
+            currentSpan.end += newUnit;
+          }
+          if (currentSpan.end <= oldSelection.start &&
+              currentSpan.start == newSelection.start) {
+            _currentLineList.remove(currentSpan);
+            // 执行删除回调给自定义at 删除回调
+          }
+        }
+      }
+    }
+  }
 
   /// 是不是特殊字符
   bool isSpecialAtFlag(String value) {

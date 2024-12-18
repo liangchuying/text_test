@@ -68,19 +68,17 @@ class _TextTestState extends State<TextTest>
                         ? _controller.selection.start
                         : 0;
 
-                    AtText atText = AtText(
-                        const TextStyle(), null,
+                    AtText atText = AtText(const TextStyle(), null,
                         text: 'liudongju\t',
                         start: start,
-                        end: start);
+                        end: start + 'liudongju\t'.length);
                     atText.appendContent('liudongju\t');
                     try {
                       _mySpecialTextSpanBuilder.insertSpecialText(atText);
                       _controller.insertText("@liudongju\t");
-                    }catch (e) {
+                    } catch (e) {
                       e.toString();
                     }
-
                   },
                 )
               ],
